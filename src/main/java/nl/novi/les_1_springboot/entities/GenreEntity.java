@@ -1,20 +1,25 @@
 package nl.novi.les_1_springboot.entities;
 
-public class Genre {
-    /**
-     * Dit is een mock-model voor de Genre.
-     * In de volgende les ga je hier een echte entiteit voor maken.
-     */
-    private Long id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "genres")
+public class GenreEntity extends BaseEntity {
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "description")
     private String description;
 
-    public Long getId() {
-        return id;
+
+    public GenreEntity() {
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public GenreEntity(String name) {
+        this.name = name;
     }
 
     public String getName() {

@@ -1,14 +1,15 @@
 package nl.novi.les_1_springboot.controllers;
 
-import nl.novi.les_1_springboot.entities.Genre;
+import nl.novi.les_1_springboot.entities.GenreEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import nl.novi.les_1_springboot.services.GenreService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/genre")
+@RequestMapping("/genres")
 public class GenreController {
 
     private final GenreService genreService;
@@ -18,26 +19,26 @@ public class GenreController {
     }
 
     @GetMapping("")
-    public List<Genre> getAllGenres() {
+    public List<GenreEntity> getAllGenres() {
         return genreService.findAllGenres();
     }
 
     @GetMapping("/{id}")
-    public Genre getGenreById(@PathVariable Long id) {
-        Genre g = genreService.findGenreById(id);
+    public Optional<GenreEntity> getGenreById(@PathVariable Long id) {
+        Optional<GenreEntity> g = genreService.findGenreById(id);
         return g;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Genre createGenre(@RequestBody Genre g){
-        Genre createdGenre = genreService.createGenre(g);
+    public GenreEntity createGenre(@RequestBody GenreEntity g){
+        GenreEntity createdGenre = genreService.createGenre(g);
         return createdGenre;
     }
 
     @PutMapping("/{id}")
-    public Genre updateGenre(@PathVariable Long id, @RequestBody Genre g){
-        Genre updatedGenre = genreService.updateGenre(id, g);
+    public GenreEntity updateGenre(@PathVariable Long id, @RequestBody GenreEntity g){
+        GenreEntity updatedGenre = genreService.updateGenre(id, g);
         return updatedGenre;
     }
 

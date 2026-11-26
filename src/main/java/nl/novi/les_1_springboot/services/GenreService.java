@@ -1,7 +1,11 @@
 package nl.novi.les_1_springboot.services;
 
+import nl.novi.les_1_springboot.dto.GenreRequestDTO;
+import nl.novi.les_1_springboot.dto.GenreResponseDTO;
 import nl.novi.les_1_springboot.entities.GenreEntity;
 import nl.novi.les_1_springboot.entities.PublisherEntity;
+import nl.novi.les_1_springboot.exceptions.RecordNotFoundException;
+import nl.novi.les_1_springboot.mappers.GenreDTOMapper;
 import nl.novi.les_1_springboot.repositories.GenreRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,44 +16,48 @@ import java.util.Optional;
 public class GenreService {
 
     public final GenreRepository genreRepository;
+    public final GenreDTOMapper genreDTOMapper;
+
+    GenreService(GenreRepository genreRepository, GenreDTOMapper genreDTOMapper) {
+        this.genreRepository = genreRepository;
+        this.genreDTOMapper = genreDTOMapper;
+    }
 
     public Optional<GenreEntity> getGenreById(Long id) {
-        if (genreRepository.findById(id).isPresent()){
-            return genreRepository.findById(id);
-        }
-        else{
-            return null;
-        }
+        return genreRepository.findById(id);
     };
 
-    public List<GenreEntity> findAllGenres(){
-        return genreRepository.findAll();
+    public List<GenreResponseDTO> findAllGenres(){
+        return genreDTOMapper.mapToDto(genreRepository.findAll());
     };
 
-    public Optional<GenreEntity> findGenreById(Long id){
-        if (getGenreById(id).isPresent()) {
-            return genreRepository.findById(id);
+    public GenreResponseDTO findGenreById(Long id){
+        Optional <GenreEntity> genre = getGenreById(id);
+        if (genre.isEmpty()){
+            throw new RecordNotFoundException("Genre with id " + id + " not found");
         }
-        else {
-            return null;
-        }
+
+        return genreDTOMapper.mapToDto(genre.get());
     };
 
-    public GenreEntity createGenre(GenreEntity input){
-        return genreRepository.save(input);
-    };
+    public GenreResponseDTO createGenre(GenreRequestDTO genreDTO) {
+        GenreEntity genreEntity = genreDTOMapper.mapToEntity(genreDTO);
+        genreEntity = genreRepository.save(genreEntity);
+        return genreDTOMapper.mapToDto(genreEntity);
+    }
 
-    public GenreEntity updateGenre(Long id, GenreEntity input){
-        Optional<GenreEntity> gen = genreRepository.findById(id);
+
+    public GenreResponseDTO updateGenre(Long id, GenreRequestDTO input){
+        Optional<GenreEntity> gen = getGenreById(id);
         if (gen.isEmpty()){
-            return null;
+            throw new RecordNotFoundException("Genre with id " + id + " not found");
         }
         GenreEntity ge = gen.get();
 
-        ge.setName(input.getName());
-        ge.setDescription(input.getDescription());
+        ge.setName(input.name());
+        ge.setDescription(input.description());
 
-        return genreRepository.save(ge);
+        return genreDTOMapper.mapToDto(genreRepository.save(ge));
     };
 
     public void deleteGenre(Long id){
@@ -58,7 +66,5 @@ public class GenreService {
         }
     };
 
-    GenreService(GenreRepository genreRepository) {
-        this.genreRepository = genreRepository;
-    }
+
 }

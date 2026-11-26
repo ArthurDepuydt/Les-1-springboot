@@ -1,7 +1,12 @@
 package nl.novi.les_1_springboot.services;
 
+import nl.novi.les_1_springboot.dto.PublisherRequestDTO;
+import nl.novi.les_1_springboot.dto.PublisherResponseDTO;
 import nl.novi.les_1_springboot.entities.GenreEntity;
 import nl.novi.les_1_springboot.entities.PublisherEntity;
+import nl.novi.les_1_springboot.exceptions.RecordNotFoundException;
+import nl.novi.les_1_springboot.mappers.GenreDTOMapper;
+import nl.novi.les_1_springboot.mappers.PublisherDTOMapper;
 import nl.novi.les_1_springboot.repositories.GenreRepository;
 import nl.novi.les_1_springboot.repositories.PublisherRepository;
 import org.springframework.stereotype.Service;
@@ -15,50 +20,47 @@ import java.util.concurrent.Flow;
 public class PublisherService {
 
     public final PublisherRepository publisherRepository;
+    public final PublisherDTOMapper publisherDTOMapper;
+
+    public PublisherService(PublisherRepository publisherRepository, PublisherDTOMapper publisherDTOMapper) {
+        this.publisherRepository = publisherRepository;
+        this.publisherDTOMapper = publisherDTOMapper;
+    }
 
     public Optional<PublisherEntity> getPublisherById(Long id) {
-        if (publisherRepository.findById(id).isPresent()){
-            return publisherRepository.findById(id);
-        }
-        else{
-            return null;
-        }
+        return publisherRepository.findById(id);
     };
 
-    public PublisherService(PublisherRepository publisherRepository) {
-        this.publisherRepository = publisherRepository;
+    public List<PublisherResponseDTO> findAllPublishers(){
+        return publisherDTOMapper.mapToDto(publisherRepository.findAll());
     }
 
-    public List<PublisherEntity> findAllPublishers(){
-        return publisherRepository.findAll();
-    }
-
-    public Optional<PublisherEntity> findPublisherById(Long id) {
+    public PublisherResponseDTO findPublisherById(Long id) {
         if (getPublisherById(id).isPresent()){
-            return publisherRepository.findById(id);
+            return publisherDTOMapper.mapToDto(publisherRepository.findById(id).get());
         }
         else{
-            return null;
+            throw new RecordNotFoundException("Publisher with id " + id + " not found");
         }
     }
 
-    public PublisherEntity createPublisher(PublisherEntity input){
-        return publisherRepository.save(input);
+    public PublisherResponseDTO createPublisher(PublisherRequestDTO input){
+        return publisherDTOMapper.mapToDto(publisherRepository.save(publisherDTOMapper.mapToEntity(input)));
     }
 
 
-    public PublisherEntity updatePublisher(Long id, PublisherEntity input){
+    public PublisherResponseDTO updatePublisher(Long id, PublisherRequestDTO input){
         Optional<PublisherEntity> pub = publisherRepository.findById(id);
         if (pub.isEmpty()){
-            return null;
+            throw new RecordNotFoundException("Publisher with id " + id + " not found");
         }
         PublisherEntity pe = pub.get();
 
-        pe.setName(input.getName());
-        pe.setAddress(input.getAddress());
-        pe.setContactDetails(input.getContactDetails());
+        pe.setName(input.name());
+        pe.setAddress(input.address());
+        pe.setContactDetails(input.contactDetails());
 
-        return publisherRepository.save(pe);
+        return publisherDTOMapper.mapToDto(publisherRepository.save(pe));
     }
 
     public void deletePublisher(Long id){
